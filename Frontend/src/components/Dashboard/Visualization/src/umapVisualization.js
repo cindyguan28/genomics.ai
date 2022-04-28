@@ -1,0 +1,196 @@
+import * as d3 from "d3";
+import * as cons from "./constants";
+import {zoomM, zoomInN, zoomOutN} from "./newZoom"
+//TODO: Fix constants
+//TODO: Convert x and y to float beforehand before to_csv
+//TODO: Add a ref attribute
+//TODO: Refactor coloring functions
+//TODO: add div 'moreVisul' for the bar charts
+
+const listColoringDomain = (data, mode) => {
+    let coloringDomain = data.map(x => x[mode]).filter((x, i, a) => a.indexOf(x) == i);
+    return coloringDomain;
+}
+
+
+//For Before and After query
+const queryAfter = (cells) => {
+    cells
+        .style("opacity", d => {
+            if (!d.ref) {
+                return 0;
+            } else {
+                return cons.originalOpacity;
+            }
+        })
+
+}
+
+const queryBefore = (smth) => {
+    cells
+        .style("opacity", cons.originalOpacity)
+}
+
+const setColoring = (mode, data) => {
+    if (mode === "cell_type" || mode === "batch") {
+        let colorDomain = listColoringDomain(data, mode);
+        var colorScale =
+            d3.scaleOrdinal()
+                .domain(...colorDomain)
+                .range(cons.colors.slice(0, colorDomain.length));
+    } else {
+        var colorDomain = data.map(d => parseFloat(d[mode]));
+        var colorScale =
+            d3.scaleLinear()
+                .domain([d3.min(colorDomain), d3.max(colorDomain)])
+                .range(gradientColors);
+
+    }
+    return colorScale;
+}
+
+const addGroup = (svg, id) => {
+    return svg.append('g').attr('id', `${id}`);
+};
+
+
+const getColoringModes = (data) =>
+    Object.assign({},
+        ...(Object.keys(data[0])
+            .filter(d => (d != "x" && d != "y" && d != ""))
+            .map(d => {
+                var a = {};
+                if (parseFloat(data[0][d])) {
+                    let max = d3.max(data.map(val => parseFloat(val[d])));
+                    let min = d3.min(data.map(val => parseFloat(val[d])));
+                    a[d] = listColoringDomain(data, d).map(val => parseFloat(val)).filter(val => val == max || val == min).sort((a, b) => a - b).map((d, i) => [d, cons.gradientColors[i]]);
+                    return a;
+                }
+                a[d] = listColoringDomain(data, d).map((d, i) => [d, cons.colors[i]])
+                return a;
+            })));
+
+export class UmapVisualization2 {
+
+
+    constructor(container, data) {
+        d3.select(container).selectAll("*").remove();
+        this.svg = d3.select(container).append('svg');
+        this.tooltip = d3.select(container).append('div');
+        this.label = this.svg.append("label");
+        this.gCells = addGroup(this.svg, 'cells');
+        this.gLabels = addGroup(this.svg, 'labels');
+        this.coloringModes = getColoringModes(data);
+        this.data = data;
+    };
+
+    setColorMode(mode) {
+        const colorScale = setColoring(mode, this.data);
+        this.cells = this.cells.style("fill", (d) => colorScale(d[mode]));
+    }
+
+    //Width and height should be the size of the container, not square
+    async render(w, h) {
+
+        const data = this.data; //dataUnpacked;
+
+        const min = d3.min([h, w]);
+        const r = 0.003 * min;
+
+        const xScaleHelper = d3.scaleLinear()
+            .domain([d3.min(data.map(d => parseFloat(d.x))), d3.max(data.map(d => parseFloat(d.x)))])
+            .range([cons.margin, min - cons.margin]);
+
+        const translate = (w - cons.margin - (xScaleHelper(d3.max(data.map(d => parseFloat(d.x)))))) / 2;
+
+        //Scales
+        const xScale = d3.scaleLinear()
+            .domain([d3.min(data.map(d => parseFloat(d.x))), d3.max(data.map(d => parseFloat(d.x)))])
+            .range([translate, min - cons.margin + translate]);
+
+        const yScale = d3.scaleLinear()
+            .domain([d3.min(data.map(d => parseFloat(d.y))), d3.max(data.map(d => parseFloat(d.y)))])
+            .range([cons.margin, min - cons.margin]);
+
+        //svg
+        this.svg
+            .attr("width", w)
+            .attr("height", h)
+
+        //tooltip
+        this.tooltip
+            .attr('class', 'tooltip')
+            .attr('opacity', cons.originalOpacity)
+            .style("background-color", "white")
+            .style("position", "absolute")
+            .style("visibility", "hidden")
+
+        this.cells = this.gCells.selectAll("*").remove();
+        //Circle cells
+        this.cells = this.gCells
+            .selectAll("cell")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("cx", d => xScale(parseFloat(d.x)))
+            .attr("cy", d => yScale(parseFloat(d.y)))
+            .attr('class', d => (d.cell_type.replace(' ', '_')))
+            .attr('cell_type', d => (d.cell_type))
+            .attr("r", r)
+            .style("fill", cons.fill)
+            .style("opacity", cons.originalOpacity)
+            .on("mouseover", function () { //getter bigger on hover
+                tooltip.text(d3.select(this).attr('cell_type'))
+                    .style("visibility", "visible")
+                d3.select(this)
+                    .transition()
+                    .duration(100)
+                    .attr('r', 5)
+                    .style("stroke", "black")
+                    .style("opacity", 1)
+            })
+            .on("mousemove", function () {
+                tooltip
+                    .attr('font-family', 'ui-sans-serif')
+                    .attr('font-weight', 600)
+                    .attr('font-style', 'italic')
+                    .style("top", d3.select(this).attr("cy") + "px")
+                    .style("left", d3.select(this).attr("cx") + "px")
+
+            })
+            .on("mouseout", function () {
+                tooltip.style("visibility", "hidden");
+                d3.select(this)
+                    .transition()
+                    .duration(100)
+                    .attr('r', 1)
+                    .style("stroke", "none")
+                    .style("opacity", 0.8)
+            })
+            .on('click', function (d, i){
+                const showMore = document.getElementById("moreVisul");
+                if(showMore.style.display === 'none') {
+                    showMore.style.display = 'block';
+                } else {
+                    showMore.style.display = 'none';
+                }
+            });
+
+
+        //Pan and mouse zoom
+        this.svg
+            .attr('class', 'mouse-capture')
+            .attr('x', -w)
+            .attr('y', -h)
+            .attr('width', w)
+            .attr('height', h)
+            .style('fill', 'white')
+            .lower() // put it below the map
+            .call(zoomM);
+
+
+    }
+
+    }
+
+ 

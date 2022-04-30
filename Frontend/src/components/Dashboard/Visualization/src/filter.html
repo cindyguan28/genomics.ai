@@ -14,100 +14,255 @@
 
 <script>
 
-
-  const data = "testFile2.csv";
-  //   [
+  // // import * as d3 from "d3";
+  // // import * as cons from "./constants";
+  // // import {zoomM, zoomInN, zoomOutN} from "./newZoom"
+  // //TODO: Fix constants
+  // //TODO: Convert x and y to float beforehand before to_csv
+  // //TODO: Add a ref attribute
+  // //TODO: Refactor coloring functions
+  // const colors = [
+  //   '#000000', '#1CE6FF', '#FF34FF', '#FF4A46', '#008941', '#006FA6', '#A30059', '#FC009C',
+  //   '#7A4900', '#0000A6', '#63FFAC', '#B79762', '#997D87', '#92896B', '#365D25', '#866097',
+  //   '#5A0007', '#809693', '#3B5DFF', '#4A3B53', '#674E60', '#252F99', '#00CCFF', '#545C46',
+  //   '#61615A', '#BA0900', '#6B7900', '#00C2A0', '#FFAA92', '#FF90C9', '#B903AA', '#D16100',
+  //   '#DDEFFF', '#000035', '#7B4F4B', '#A1C299', '#300018', '#0AA6D8', '#013349', '#00846F',
+  //   '#372101', '#FFB500', '#C2FFED', '#A079BF', '#CC0744', '#C0B9B2', '#C2FF99', '#001E09',
+  //   '#00489C', '#6F0062', '#0CBD66', '#EEC3FF', '#456D75', '#B77B68', '#7A87A1', '#788D66',
+  //   '#885578', '#FAD09F', '#FF8A9A', '#D157A0', '#BEC459', '#456648', '#0086ED', '#886F4C',
+  //   '#34362D', '#B4A8BD', '#00A6AA', '#452C2C', '#636375', '#A3C8C9', '#FF913F', '#938A81',
+  //   '#575329', '#00FECF', '#B05B6F', '#8CD0FF', '#3B9700', '#04F757', '#C8A1A1', '#1E6E00',
+  //   '#7900D7', '#A77500', '#6367A9', '#A05837', '#6B002C', '#772600', '#D790FF', '#9B9700',
+  //   '#549E79', '#FFF69F', '#201625', '#72418F', '#BC23FF', '#99ADC0', '#3A2465', '#922329',
+  //   '#5B4534', '#FDE8DC', '#404E55', '#0089A3', '#CB7E98', '#A4E804', '#324E72', '#6A3A4C',
+  //   '#83AB58', '#001C1E', '#D1F7CE', '#004B28', '#C8D0F6', '#A3A489', '#806C66', '#222800',
+  //   '#BF5650', '#E83000', '#66796D', '#DA007C', '#FF1A59', '#8ADBB4', '#1E0200', '#5B4E51',
+  //   '#C895C5', '#320033', '#FF6832', '#66E1D3', '#CFCDAC', '#D0AC94', '#7ED379', '#012C58',
+  //   '#7A7BFF', '#D68E01', '#353339', '#78AFA1', '#FEB2C6', '#75797C', '#837393', '#943A4D',
+  //   '#B5F4FF', '#D2DCD5', '#9556BD', '#6A714A', '#001325', '#02525F', '#0AA3F7', '#E98176',
+  //   '#DBD5DD', '#5EBCD1', '#3D4F44', '#7E6405', '#02684E', '#962B75', '#8D8546', '#9695C5',
+  //   '#E773CE', '#D86A78', '#3E89BE', '#CA834E', '#518A87', '#5B113C', '#55813B', '#E704C4',
+  //   '#00005F', '#A97399', '#4B8160', '#59738A', '#FF5DA7', '#F7C9BF', '#643127', '#513A01',
+  //   '#6B94AA', '#51A058', '#A45B02', '#1D1702', '#E20027', '#E7AB63', '#4C6001', '#9C6966',
+  //   '#64547B', '#97979E', '#006A66', '#391406', '#F4D749', '#0045D2', '#006C31', '#DDB6D0',
+  //   '#7C6571', '#9FB2A4', '#00D891', '#15A08A', '#BC65E9', '#FFFFFE', '#C6DC99', '#203B3C',
+  //   '#671190', '#6B3A64', '#F5E1FF', '#FFA0F2', '#CCAA35', '#374527', '#8BB400', '#797868',
+  //   '#C6005A', '#3B000A', '#C86240', '#29607C', '#402334', '#7D5A44', '#CCB87C', '#B88183',
+  //   '#AA5199', '#B5D6C3', '#A38469', '#9F94F0', '#A74571', '#B894A6', '#71BB8C', '#00B433',
+  //   '#789EC9', '#6D80BA', '#953F00', '#5EFF03', '#E4FFFC', '#1BE177', '#BCB1E5', '#76912F',
+  //   '#003109', '#0060CD', '#D20096', '#895563', '#29201D', '#5B3213', '#A76F42', '#89412E',
+  //   '#1A3A2A', '#494B5A', '#A88C85', '#F4ABAA', '#A3F3AB', '#00C6C8', '#EA8B66', '#958A9F',
+  //   '#BDC9D2', '#9FA064', '#BE4700', '#658188', '#83A485', '#453C23', '#47675D', '#3A3F00',
+  //   '#061203', '#DFFB71', '#868E7E', '#98D058', '#6C8F7D', '#D7BFC2', '#3C3E6E', '#D83D66',
+  //   '#2F5D9B', '#6C5E46', '#D25B88', '#5B656C', '#00B57F',
+  // ];
   //
-  //   {cell_num:0,cell_type:"Pancreas Endothelial",batch: "Pancreas inDrop", x: 0.31053063, y: 0.44031984},
-  //   {cell_num:1,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.8170208,y: 0.8070878},
-  //   {cell_num:2,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.14026816,y:0.18202195},
-  //   {cell_num:3,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.5969836,y:0.58627516},
-  //   {cell_num:4,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.92910624,y:1.1493335},
-  //   {cell_num:5,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 1.2906326,y:0.9178747},
-  //   {cell_num:6,cell_type:"Pancreas Beta",batch:"Pancreas inDrop",x: 15.734412,y:-0.051128026},
-  // {cell_num:7,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.26298034,y:0.2673995},
-  // {cell_num:8,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 1.2066041,y:1.1371143},
-  // {cell_num:9,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.5512813,y:0.83700573},
-  // {cell_num:10,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.9753168,y:1.1562345}
+  // const getMin = (w,h) =>
+  // {
+  //   return d3.min([h,w]);
+  // }
   //
-  // ]
-
-  d3.csv(data, function (data) {
-    let num = 0;
-    const array = Object.assign({},
-      ...(Object.keys(data[1])
-          .filter(d => (d != "x" && d != "y" && d != ""))
-          .map(d =>{ var a = {};
-            a[d] = Object.assign({},
-              ...(Object.keys(data[1])
-                .map((d,i) => {
-                  const obj = new Object();
-                  obj[d] = data[1][i];
-                  return obj;
-                })))
-            return a;} )));
-    console.log(array)
-
-
-    const filteredCell = Object.keys(data)
-          .filter(key => data[key] === array[key])
-          .reduce((obj, key) => {
-            obj[key] = data[key];
-            num++
-            return obj;
-          }, {});
-         console.log(filteredCell)
-
-    })
-
-
-
-  // coloringModes.forEach(data, function ())
+  // //Hide (for every possible attribute)
+  // const queryAfter = (cells, category, value) =>{
+  //   cells
+  //     .style("opacity", d => {
+  //       if (d[category] == value){
+  //         return 0;
+  //       }
+  //       else{
+  //         return cons.originalOpacity;
+  //       }
+  //     })
   //
-  //     const filteredCell = Object.keys(data)
-  //       .filter(key => selectedCell.includes(key))
-  //       .reduce((obj, key) => {
-  //         obj[key] = data[key];
-  //         return obj;
-  //       }, {});
+  // }
   //
-  //     console.log(filteredCell);
-    // }
-
-  // })
-
-
-  // .row(function (d) {
+  // //Show
+  // const queryBefore = (cells) =>{
+  //   cells = cells
+  //     .style("opacity", 1)
+  // }
   //
-  //     return {
-  //       cell_type: d.cell_type,
-  //       batch: d.batch
+  // //Reference before and after
   //
-  //     };
+  //
+  // const listColoringDomain = (data, mode) => {
+  //   let coloringDomain = data.map(x => x[mode]).filter((x, i, a) => a.indexOf(x) == i);
+  //   return coloringDomain;
+  // }
+  //
+  // //Create a color scale based on the chosen mode and its values
+  // const setColoring = (mode, data) => {
+  //   if(!parseFloat(data[0][mode]))
+  //   {
+  //     let colorDomain = listColoringDomain(data, mode);
+  //     var colorScale =
+  //       d3.scaleOrdinal()
+  //         .domain(...colorDomain)
+  //         .range(colors.slice(0,colorDomain.length));
+  //   }
+  //   else{
+  //     var colorDomain = data.map(d => parseFloat(d[mode]));
+  //     var colorScale =
+  //       d3.scaleLinear()
+  //         .domain([d3.min(colorDomain),d3.max(colorDomain)])
+  //         .range(colors);
+  //
+  //   }
+  //   return colorScale;
+  // }
+  //
+  // const addGroup = (svg, id) => {
+  //   return svg.append('g').attr('id', `${id}`);
+  // };
+  //
+  // const attrAdding = (cells, attrDom) =>
+  // {
+  //   for(let i=0; i < attrDom.length; i++){
+  //     var att = attrDom[i];
+  //     cells =
+  //       cells
+  //         .attr(att, (d) => d[att]);
+  //   }
+  //
+  // }
+  //
+  // //Get the possible color modes with their values
+  // const getColoringModes = (data) =>
+  //   Object.assign({},
+  //     ...(Object.keys(data[0])
+  //       .filter(d => (d != "x" && d != "y" && d != ""))
+  //       .map(d =>{ var a = {};
+  //         if (parseFloat(data[0][d]))
+  //         {
+  //           let max = d3.max(data.map(val => parseFloat(val[d])));
+  //           let min = d3.min(data.map(val => parseFloat(val[d])));
+  //           a[d] = Object.assign({}, ...listColoringDomain(data,d).map(val => parseFloat(val)).filter( val => val == max || val == min).sort((a,b) => a - b)
+  //             .map((d,i) => {
+  //               const obj = new Object();
+  //               obj[d] = colors[i];
+  //               return obj;}));
+  //           return a;
+  //         }
+  //         a[d] = Object.assign({},
+  //           ...listColoringDomain(data,d)
+  //             .map((d,i) => {
+  //               const obj = new Object();
+  //               obj[d] = colors[i];
+  //               return obj;
+  //             }))
+  //         return a;} )));
+  //
+  //
+  // const data = "testFile2.csv";
+  // //   [
+  // //
+  // //   {cell_num:0,cell_type:"Pancreas Endothelial",batch: "Pancreas inDrop", x: 0.31053063, y: 0.44031984},
+  // //   {cell_num:1,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.8170208,y: 0.8070878},
+  // //   {cell_num:2,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.14026816,y:0.18202195},
+  // //   {cell_num:3,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.5969836,y:0.58627516},
+  // //   {cell_num:4,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.92910624,y:1.1493335},
+  // //   {cell_num:5,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 1.2906326,y:0.9178747},
+  // //   {cell_num:6,cell_type:"Pancreas Beta",batch:"Pancreas inDrop",x: 15.734412,y:-0.051128026},
+  // // {cell_num:7,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.26298034,y:0.2673995},
+  // // {cell_num:8,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 1.2066041,y:1.1371143},
+  // // {cell_num:9,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.5512813,y:0.83700573},
+  // // {cell_num:10,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.9753168,y:1.1562345}
+  // //
+  // // ]
+  //
+  // d3.csv(data, function (data) {
+  //   // let num = 0;
+  //   // const array = Object.assign({},
+  //   //   ...(Object.keys(data[1])
+  //   //       .filter(d => (d != "x" && d != "y" && d != ""))
+  //   //       .map(d =>{ var a = {};
+  //   //         a[d] = Object.assign({},
+  //   //           ...(Object.keys(data[1])
+  //   //             .map((d,i) => {
+  //   //               const obj = new Object();
+  //   //               obj[d] = data[1][i];
+  //   //               return obj;
+  //   //             })))
+  //   //         return a;} )));
+  //   const array = getColoringModes(data)
+  //   console.log(array)
+  //
+  //
+  //   const filteredCell = Object.valueOf(data)
+  //         .filter(key => {
+  //           data.forEach(data[key] === array[key])
+  //         })
+  //         .reduce((obj, key) => {
+  //           obj[key] = data[key];
+  //           num++
+  //           return obj;
+  //         }, {});
+  //        console.log(filteredCell)
+  //
   //   })
-  //     .get(function (error, rows) {
-  //       console.log(rows);
-  //     });
+  d3.csv("test_file1.csv", function (data) {
+    let groupedByCelltypes = new Map();
+    let groupedByBatch = new Map();
+
+    let list = []
+    for (const row in data) {
+      const item = data[row];
+
+      if (groupedByCelltypes.has(item.cell_type)) {
+        list = groupedByCelltypes.get(item.cell_type);
+        list.push(item);
+        groupedByCelltypes.set(item.cell_type, list);
+
+      } else {
+        groupedByCelltypes.set(item.cell_type, [item]);
+      }
+    }
+    //   num = groupedByCelltypes[item].length
+    // console.log(num)
+
+    for (const row in data) {
+      const item = data[row];
+
+      if (groupedByBatch.has(item.batch)) {
+        list = groupedByBatch.get(item.batch);
+        list.push(item);
+        groupedByBatch.set(item.batch, list);
+
+      } else {
+        groupedByBatch.set(item.batch, [item]);
+      }
+    }
+
+    const getNum = (type) => {
+      // if (mode === cell_type)
+      return [...groupedByCelltypes.get(type)].length;
+      // if (Mode === batch)
+      //   return [...groupedByBatch.get(type)].length;
+    }
+
+    const getBatchNum = (type) => {
+      // if (mode === cell_type)
+      // return [...groupedByCelltypes.get(type)].length;
+      // if (Mode === batch)
+      return [...groupedByBatch.get(type)].length;
+    }
 
 
-  // Fetch file
-  // d3.csv("test_file1.csv")
-  //   // for (let i = 0; i < data.length; i++) {
-  //   //   const count = 0;
-  //   //   if (data.cell_type === '')
+    // console.log(groupedByCelltypes);
+    // console.log(groupedByBatch);
+    console.log(getNum("Pancreas Acinar"))
+    console.log(getNum("Pancreas Alpha"))
+    console.log(getNum("Pancreas Beta"))
+    console.log(getNum("Pancreas Delta"))
+    console.log(getNum("Pancreas Ductal"))
+    console.log(getNum("Pancreas Endothelial"))
+    console.log(getNum("Pancreas Gamma"))
+    console.log(getNum("Pancreas Stellate"))
+    console.log(getBatchNum("Pancreas inDrop"))
+      console.log(getBatchNum("Pancreas Fluidigm C1"))
+    // console.log(groupedByCelltypes.values())
+  })
 
-
-  // const rows = d3.csv("testFile2.csv").row(function (d) {
-  //   // d3.csv("testFile2.csv").row(function (d){
-  //
-  //   return {
-  //     cell_type: d.cell_type,
-  //     batch: d.batch
-  //   };
-  // })
-  //   .get(function (error, rows) {
-  //   });
-  // console.log(rows);
 
 </script>
 </body>

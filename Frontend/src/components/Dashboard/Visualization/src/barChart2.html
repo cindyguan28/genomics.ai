@@ -34,23 +34,62 @@
       throw error;
     }
 
+    let groupedByCelltypes = new Map();
+    let groupedByBatch = new Map();
+
+    let list = []
+    for (const row in data) {
+      const item = data[row];
+
+      if (groupedByCelltypes.has(item.cell_type)) {
+        list = groupedByCelltypes.get(item.cell_type);
+        list.push(item);
+        groupedByCelltypes.set(item.cell_type, list);
+
+      } else {
+        groupedByCelltypes.set(item.cell_type, [item]);
+      }
+    }
+
+    for (const row in data) {
+      const item = data[row];
+
+      if (groupedByBatch.has(item.batch)) {
+        list = groupedByBatch.get(item.batch);
+        list.push(item);
+        groupedByBatch.set(item.batch, list);
+
+      } else {
+        groupedByBatch.set(item.batch, [item]);
+      }
+    }
+
+    const getNum = (type) => {
+      // if (mode === cell_type)
+      return [...groupedByCelltypes.get(type)].length;
+      // if (Mode === batch)
+      //   return [...groupedByBatch.get(type)].length;
+    }
+
+    const getBatchNum = (type) => {
+      // if (mode === cell_type)
+      // return [...groupedByCelltypes.get(type)].length;
+      // if (Mode === batch)
+      return [...groupedByBatch.get(type)].length;
+    }
+
     xScale.domain(data.map(function (d) {
       return d.cell_type;
     }));
-    const totalNum = d3.max(data, function (d) {
-      return d.cell_num;
-    });
-    yScale.domain([0, totalNum]);
+    yScale.domain([0, data.length]);
 
     g.append("g")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(xScale))
-      .append("text")
-      .attr("y", height - 250)
-      .attr("x", width - 10)
-      .attr("text-anchor", "end")
-      .attr("stroke", "black")
-      .text("Percentile %");
+      .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end")
+
 
     g.append("g")
       .call(d3.axisLeft(yScale).tickFormat(function (d) {
@@ -61,11 +100,11 @@
       .attr("transform", "rotate(-90)")
       .attr("y", 6)
       .attr("dy", "-5.1em")
-      .attr("text-anchor", "end")
-      .attr("stroke", "black")
-      .text("#All Cells");
+      // .attr("text-anchor", "end")
+      // .attr("stroke", "black")
+      // .text("#All Cells");
 
-    g.selectAll(".bar")
+    g.selectAll("rect")
       .data(data)
       .enter().append("rect")
       .attr("class", "bar")
@@ -73,16 +112,18 @@
         return xScale(d.cell_type);
       })
       .attr("y", function (d) {
-        //TODO: # of cells per Type
-        //TODO: # of cells per Batch
-        return yScale(d.cell_num);
+
+        //TODO: switch between cells Type and Batch
+        return yScale(getNum(d.cell_type));
       })
       .attr("width", xScale.bandwidth())
       .attr("height", function (d) {
-        return height - yScale(d.cell_num);
+        return height - yScale(getNum(d.cell_type));
       })
-      .append('titel')
-      .text(d => d.cell_num)
+    attr("fill", "steelblue")
+      .append('title')
+      .text(d => getNum(d.cell_type) / data.length)
+
 
   });
 </script>

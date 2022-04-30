@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" path1tent=
+    "width=device-width,initial-scale=1.0">
+</head>
+
+<body>
+<script src=
+          "https://d3js.org/d3.v4.min.js">
+</script>
+
+<script>
+
+
+  const data = "testFile2.csv";
+  //   [
+  //
+  //   {cell_num:0,cell_type:"Pancreas Endothelial",batch: "Pancreas inDrop", x: 0.31053063, y: 0.44031984},
+  //   {cell_num:1,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.8170208,y: 0.8070878},
+  //   {cell_num:2,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.14026816,y:0.18202195},
+  //   {cell_num:3,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.5969836,y:0.58627516},
+  //   {cell_num:4,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.92910624,y:1.1493335},
+  //   {cell_num:5,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 1.2906326,y:0.9178747},
+  //   {cell_num:6,cell_type:"Pancreas Beta",batch:"Pancreas inDrop",x: 15.734412,y:-0.051128026},
+  // {cell_num:7,cell_type:"Pancreas Acinar",batch:"Pancreas inDrop",x: 0.26298034,y:0.2673995},
+  // {cell_num:8,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 1.2066041,y:1.1371143},
+  // {cell_num:9,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.5512813,y:0.83700573},
+  // {cell_num:10,cell_type:"Pancreas Endothelial",batch:"Pancreas inDrop",x: 0.9753168,y:1.1562345}
+  //
+  // ]
+
+  d3.csv(data, function (data) {
+    let num = 0;
+    const array = Object.assign({},
+      ...(Object.keys(data[1])
+          .filter(d => (d != "x" && d != "y" && d != ""))
+          .map(d =>{ var a = {};
+            a[d] = Object.assign({},
+              ...(Object.keys(data[1])
+                .map((d,i) => {
+                  const obj = new Object();
+                  obj[d] = data[1][i];
+                  return obj;
+                })))
+            return a;} )));
+    console.log(array)
+
+
+    const filteredCell = Object.keys(data)
+          .filter(key => data[key] === array[key])
+          .reduce((obj, key) => {
+            obj[key] = data[key];
+            num++
+            return obj;
+          }, {});
+         console.log(filteredCell)
+
+    })
+
+
+
+  // coloringModes.forEach(data, function ())
+  //
+  //     const filteredCell = Object.keys(data)
+  //       .filter(key => selectedCell.includes(key))
+  //       .reduce((obj, key) => {
+  //         obj[key] = data[key];
+  //         return obj;
+  //       }, {});
+  //
+  //     console.log(filteredCell);
+    // }
+
+  // })
+
+
+  // .row(function (d) {
+  //
+  //     return {
+  //       cell_type: d.cell_type,
+  //       batch: d.batch
+  //
+  //     };
+  //   })
+  //     .get(function (error, rows) {
+  //       console.log(rows);
+  //     });
+
+
+  // Fetch file
+  // d3.csv("test_file1.csv")
+  //   // for (let i = 0; i < data.length; i++) {
+  //   //   const count = 0;
+  //   //   if (data.cell_type === '')
+
+
+  // const rows = d3.csv("testFile2.csv").row(function (d) {
+  //   // d3.csv("testFile2.csv").row(function (d){
+  //
+  //   return {
+  //     cell_type: d.cell_type,
+  //     batch: d.batch
+  //   };
+  // })
+  //   .get(function (error, rows) {
+  //   });
+  // console.log(rows);
+
+</script>
+</body>
+
+</html>

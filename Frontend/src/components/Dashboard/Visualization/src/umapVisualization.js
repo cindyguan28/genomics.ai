@@ -1,49 +1,42 @@
 import * as d3 from "d3";
 import * as cons from "./constants";
-import {zoomM, zoomInN, zoomOutN} from "./newZoom"
-//TODO: Fix constants
-//TODO: Convert x and y to float beforehand before to_csv
-//TODO: Add a ref attribute
+import {zoomM} from "./newZoom";
+import "./tooltip.css";
+import {addBarPlot, addBarPlot_batch} from "./barChart"
+import {barHeight, barWidth, outerPieRadius, textHeight, textLabelHeight} from "./constants";
+
 //TODO: Refactor coloring functions
-//TODO: add div 'moreVisul' for the bar charts
+
+const getMin = (w, h) => {
+    return d3.min([h, w]);
+}
+
+// //Reference before and after
+// const refAfter = (cells) =>{
+//   after(cells, "is_reference", "No");
+// }
 
 const listColoringDomain = (data, mode) => {
     let coloringDomain = data.map(x => x[mode]).filter((x, i, a) => a.indexOf(x) == i);
     return coloringDomain;
 }
 
-
-//For Before and After query
-const queryAfter = (cells) => {
-    cells
-        .style("opacity", d => {
-            if (!d.ref) {
-                return 0;
-            } else {
-                return cons.originalOpacity;
-            }
-        })
-
-}
-
-const queryBefore = (smth) => {
-    cells
-        .style("opacity", cons.originalOpacity)
-}
-
+//Create a color scale based on the chosen mode and its values
 const setColoring = (mode, data) => {
-    if (mode === "cell_type" || mode === "batch") {
-        let colorDomain = listColoringDomain(data, mode);
-        var colorScale =
+    let colorScale;
+    if (!parseFloat(data[0][mode])) {
+        let colorDomain = listColoringDomain(data, mode).sort();
+        colorScale =
             d3.scaleOrdinal()
-                .domain(...colorDomain)
+                .domain(colorDomain)
                 .range(cons.colors.slice(0, colorDomain.length));
+
     } else {
         var colorDomain = data.map(d => parseFloat(d[mode]));
-        var colorScale =
+        colorScale =
             d3.scaleLinear()
                 .domain([d3.min(colorDomain), d3.max(colorDomain)])
-                .range(gradientColors);
+                .range(cons.gradientColors);
 
     }
     return colorScale;
@@ -54,48 +47,88 @@ const addGroup = (svg, id) => {
 };
 
 
+//Get the possible color modes with their values
 const getColoringModes = (data) =>
     Object.assign({},
         ...(Object.keys(data[0])
-            .filter(d => (d != "x" && d != "y" && d != ""))
+            .map(d => d.trim())
+            .filter(d => (d !== "x" && d !== "y" && d !== ""))
             .map(d => {
                 var a = {};
                 if (parseFloat(data[0][d])) {
-                    let max = d3.max(data.map(val => parseFloat(val[d])));
-                    let min = d3.min(data.map(val => parseFloat(val[d])));
-                    a[d] = listColoringDomain(data, d).map(val => parseFloat(val)).filter(val => val == max || val == min).sort((a, b) => a - b).map((d, i) => [d, cons.gradientColors[i]]);
+                    const max = d3.max(data.map(val => parseFloat(val[d])));
+                    const min = d3.min(data.map(val => parseFloat(val[d])));
+                    a[d] = Object.assign({}, ...listColoringDomain(data, d).map(val => parseFloat(val)).filter(val => val == max || val == min).sort((a, b) => a - b)
+                        .map((d, i) => {
+                            const obj = new Object();
+                            obj[d] = cons.gradientColors[i];
+                            return obj;
+                        }));
                     return a;
                 }
-                a[d] = listColoringDomain(data, d).map((d, i) => [d, cons.colors[i]])
+                const colorDomain = listColoringDomain(data, d).sort()
+                    .map((d, i) => {
+                        const obj = new Object();
+                        obj[d] = cons.colors[i];
+                        return obj;
+                    });
+                a[d] = Object.assign({},
+                    ...colorDomain)
                 return a;
             })));
 
 export class UmapVisualization2 {
 
 
-    constructor(container, data) {
+    constructor(container, data, barContainer, barContainerBatch) {
         d3.select(container).selectAll("*").remove();
         this.svg = d3.select(container).append('svg');
-        this.tooltip = d3.select(container).append('div');
-        this.label = this.svg.append("label");
         this.gCells = addGroup(this.svg, 'cells');
         this.gLabels = addGroup(this.svg, 'labels');
         this.coloringModes = getColoringModes(data);
+        this.tooltip = d3.select(container).append("div");
+        this.mode = undefined;
+        //TODO: add if for when the atlas doesn't contain cell_type
+
+        // this.barChart = addBarPlot(barContainer, data);
+        // this.barChartBatch = addBarPlotBatch(barContainerBatch, data);
+
+        this.barChart = container.select(barContainer);
+        this.barChartBatch = container.select(barContainerBatch);
         this.data = data;
     };
 
-    setColorMode(mode) {
-        const colorScale = setColoring(mode, this.data);
-        this.cells = this.cells.style("fill", (d) => colorScale(d[mode]));
+
+    //Hide
+    after(category, value) {
+        this.cells
+            .style("visibility", (d) => {
+                return d[category] === value ? "hidden" : "visible"
+            });
+
     }
 
-    //Width and height should be the size of the container, not square
-    async render(w, h) {
+    //Show
+    before() {
+        this.cells
+            .style("visibility", "visible");
+    }
 
-        const data = this.data; //dataUnpacked;
+    //Set a color mode
+    setColorMode(mode) {
+        const colorScale = setColoring(mode, this.data);
+        if (this.cells != null) {
 
-        const min = d3.min([h, w]);
-        const r = 0.003 * min;
+            this.cells.style("fill", (d) => colorScale(d[mode]));
+        }
+        this.mode = mode;
+        this.colorScale = colorScale;
+    }
+
+    //Sizing and resizing the cells
+    resize(w, h) {
+        const min = getMin(w, h);
+        const data = this.data;
 
         const xScaleHelper = d3.scaleLinear()
             .domain([d3.min(data.map(d => parseFloat(d.x))), d3.max(data.map(d => parseFloat(d.x)))])
@@ -112,50 +145,106 @@ export class UmapVisualization2 {
             .domain([d3.min(data.map(d => parseFloat(d.y))), d3.max(data.map(d => parseFloat(d.y)))])
             .range([cons.margin, min - cons.margin]);
 
+        this.cells
+            .attr("cx", d => xScale(parseFloat(d.x)))
+            .attr("cy", d => yScale(parseFloat(d.y)))
+
+
+        return [xScale, yScale];
+    }
+
+    //add barChart
+    // showBarPlot(data) {
+    //     const extendedWidth = 4 * padding + barWidth + 2 * outerPieRadius;
+    //     const extendedHeight = textHeight + textLabelHeight + barHeight + 2.5 * padding;
+    //
+    //     if (mode === "cell_type") {
+    //         barContainer.transition()
+    //             .duration(500)
+    //         barContainer.select("rect")
+    //             .transition()
+    //             .duration(500)
+    //             .attr('width', extendedWidth)
+    //             .attr('height', extendedHeight)
+    //
+    //         addBarPlot(barContainer, data);
+    //     }
+    //     if (mode === "batch") {
+    //         barContainerBatch.transition()
+    //             .duration(500)
+    //
+    //         barContainerBatch.select("rect")
+    //             .transition()
+    //             .duration(500)
+    //             .attr('width', extendedWidth)
+    //             .attr('height', extendedHeight)
+    //         addBarPlot_batch(barContainerBatch, data);
+    //     }
+    // }
+
+    //Constructing the svg
+    async render(w, h) {
+
+        const data = this.data;
+
+        const min = getMin(w, h);
+
+        const r = 0.003 * min;
+
+        const _this = this;
+
         //svg
         this.svg
             .attr("width", w)
             .attr("height", h)
 
-        //tooltip
-        this.tooltip
-            .attr('class', 'tooltip')
-            .attr('opacity', cons.originalOpacity)
-            .style("background-color", "white")
-            .style("position", "absolute")
-            .style("visibility", "hidden")
+        //Circle cell
+        this.gCells.selectAll("*").remove();
 
-        this.cells = this.gCells.selectAll("*").remove();
-        //Circle cells
-        this.cells = this.gCells
-            .selectAll("cell")
-            .data(data)
-            .enter()
-            .append("circle")
-            .attr("cx", d => xScale(parseFloat(d.x)))
-            .attr("cy", d => yScale(parseFloat(d.y)))
-            .attr('class', d => (d.cell_type.replace(' ', '_')))
-            .attr('cell_type', d => (d.cell_type))
-            .attr("r", r)
-            .style("fill", cons.fill)
-            .style("opacity", cons.originalOpacity)
-            .on("mouseover", function () { //getter bigger on hover
-                tooltip.text(d3.select(this).attr('cell_type'))
-                    .style("visibility", "visible")
+        this.cells =
+            this.gCells
+                .selectAll("cell")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("r", r)
+                .style("fill", (d) => (_this.mode ? _this.colorScale(d[_this.mode]) : "black"))
+                .style("opacity", cons.originalOpacity)
+
+        // after(this.cells, "cell_type", "Pancreas Beta")
+
+        //Setting coordinates
+        const [xScale, yScale] = this.resize(w, h);
+
+        //tooltip
+        var tooltip =
+            this.tooltip
+                .attr('class', 'tooltip')
+                .attr('opacity', 1)
+                .style("visibility", "hidden")
+
+
+        this.cells
+            .on("mouseover", function (m, d) { //getter bigger on hover
                 d3.select(this)
                     .transition()
                     .duration(100)
-                    .attr('r', 5)
+                    .attr('r', r * 1.5)
                     .style("stroke", "black")
                     .style("opacity", 1)
-            })
-            .on("mousemove", function () {
+
+                if (!_this.mode) return;
+                const att = d[_this.mode];
+                const xPos = parseFloat(m.x) + 5;
+                const yPos = parseFloat(m.y) - 35;
+
                 tooltip
-                    .attr('font-family', 'ui-sans-serif')
-                    .attr('font-weight', 600)
-                    .attr('font-style', 'italic')
-                    .style("top", d3.select(this).attr("cy") + "px")
-                    .style("left", d3.select(this).attr("cx") + "px")
+                    .style("visibility", "visible")
+
+                tooltip
+                    .html(att)
+                    .style("top", `${yPos}px`)
+                    .style("left", `${xPos}px`)
 
             })
             .on("mouseout", function () {
@@ -163,17 +252,24 @@ export class UmapVisualization2 {
                 d3.select(this)
                     .transition()
                     .duration(100)
-                    .attr('r', 1)
+                    .attr('r', r)
                     .style("stroke", "none")
                     .style("opacity", 0.8)
             })
-            .on('click', function (d, i){
-                const showMore = document.getElementById("moreVisul");
-                if(showMore.style.display === 'none') {
-                    showMore.style.display = 'block';
-                } else {
-                    showMore.style.display = 'none';
-                }
+            .on('click', function (error, data) {
+                if (mode === "cell_type")
+                    this.barChart.addBarPlot(barContainer, data);
+                tooltip.style()
+                    .style("visibility", "visible")
+                    .html("<p>#Gene per Persentile</p>"
+                        + "<div id = 'barContainer'></div>")
+                if (mode === "batch")
+                    // this.barChartBatch.showBarPlot(data)
+                    this.barChartBatch.addBarPlotBatch(barContainerBatch, data);
+                tooltip.style()
+                    .style("visibility", "visible")
+                    .html("<p>#Gene per Persentile</p>"
+                        + "<div id = 'barContainerBatch'></div>")
             });
 
 
@@ -185,12 +281,9 @@ export class UmapVisualization2 {
             .attr('width', w)
             .attr('height', h)
             .style('fill', 'white')
-            .lower() // put it below the map
+            .lower()
             .call(zoomM);
 
-
     }
 
-    }
-
- 
+}

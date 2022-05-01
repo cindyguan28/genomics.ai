@@ -80,7 +80,7 @@ const getColoringModes = (data) =>
 export class UmapVisualization2 {
 
 
-    constructor(container, data, barContainer, barContainerBatch) {
+    constructor(container, data, barContainer) {
         d3.select(container).selectAll("*").remove();
         this.svg = d3.select(container).append('svg');
         this.gCells = addGroup(this.svg, 'cells');
@@ -90,11 +90,11 @@ export class UmapVisualization2 {
         this.mode = undefined;
         //TODO: add if for when the atlas doesn't contain cell_type
 
-        // this.barChart = addBarPlot(barContainer, data);
+        this.barChart = d3.select(container).append("barContainer");
         // this.barChartBatch = addBarPlotBatch(barContainerBatch, data);
 
-        this.barChart = container.select(barContainer);
-        this.barChartBatch = container.select(barContainerBatch);
+        // this.barChart = container.select(barContainer);
+        // this.barChartBatch = container.select(barContainerBatch);
         this.data = data;
     };
 
@@ -257,19 +257,21 @@ export class UmapVisualization2 {
                     .style("opacity", 0.8)
             })
             .on('click', function (error, data) {
-                if (mode === "cell_type")
-                    this.barChart.addBarPlot(barContainer, data);
+                // if (mode === "cell_type")
+
                 tooltip.style()
                     .style("visibility", "visible")
                     .html("<p>#Gene per Persentile</p>"
                         + "<div id = 'barContainer'></div>")
-                if (mode === "batch")
-                    // this.barChartBatch.showBarPlot(data)
-                    this.barChartBatch.addBarPlotBatch(barContainerBatch, data);
-                tooltip.style()
-                    .style("visibility", "visible")
-                    .html("<p>#Gene per Persentile</p>"
-                        + "<div id = 'barContainerBatch'></div>")
+                this.barChart.addBarPlot(barContainer, data)
+
+                // if (mode === "batch")
+                //     // this.barChartBatch.showBarPlot(data)
+                //     this.barChartBatch.addBarPlotBatch(barContainerBatch, data);
+                // tooltip.style()
+                //     .style("visibility", "visible")
+                //     .html("<p>#Gene per Persentile</p>"
+                //         + "<div id = 'barContainerBatch'></div>")
             });
 
 
